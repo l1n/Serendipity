@@ -19,7 +19,7 @@ handler(CompassHeadingData heading)
 void
 orientation_init(void)
 {
-  compass_service_set_heading_filter(0);
+  compass_service_set_heading_filter(TRIG_MAX_ANGLE/720);
   compass_service_subscribe(handler);
 }
   
