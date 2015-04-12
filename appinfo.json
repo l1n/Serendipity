@@ -1,8 +1,8 @@
 {
   "uuid": "334e7bc6-6a73-471a-8a6a-29fbe0d19dad",
-  "shortName": "a",
-  "longName": "a",
-  "companyName": "MakeAwesomeHappen",
+  "shortName": "Serendipity",
+  "longName": "Serendipity - A Minimal Map",
+  "companyName": "A Bitcamp Hackathon Project",
   "versionCode": 1,
   "versionLabel": "1.0",
   "sdkVersion": "3",
@@ -14,6 +14,12 @@
     "dummy": 0
   },
   "resources": {
-    "media": []
+    "media": [
+	    {
+		    "name": "ARROW",
+		    "file": "img/arrow.png",
+		    "type": "png"
+	    }
+    ]
   }
 }
