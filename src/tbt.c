@@ -2,6 +2,8 @@
 #include "communications.h"
 #include "orientation.h"
 #include "arrow.h"
+#include "debug.h"
+#include "destination.h"
 
 Window *window;
 
@@ -16,7 +18,6 @@ static void
 up_click_handler(ClickRecognizerRef recognizer,
                  void *context)
 {
-  /* layer_mark_dirty(compass_layer); */
   communications_send_keypress(1);
 }
 
@@ -42,14 +43,20 @@ window_load(Window *window)
   GRect bounds = layer_get_bounds(window_layer);
 
   setup_arrow(bounds);
+  setupLayer();
+  destination_init();
 
   layer_add_child(window_layer, compass_layer);
+  layer_add_child(window_layer, text_layer_get_layer(debug_layer));
+  layer_add_child(window_layer, text_layer_get_layer(destination_layer));
 }
 
 static void
 window_unload(Window *window)
 {
   destroy_arrow();
+  destroyLayer();
+  destination_deinit();
 }
 
 double bearing, orientation;
@@ -57,14 +64,20 @@ double bearing, orientation;
 static void
 calc_rotation()
 {
-  arrow_rotation = orientation - bearing;
-  if (arrow_rotation < 0) arrow_rotation += 2 * 3.141592653;
+  double _bearing = bearing, _orientation = orientation;
+  if (_bearing > PI) _bearing -= 2*PI;
+  if (_orientation > PI) _orientation -= 2*PI;
+  arrow_rotation = _bearing + _orientation;
+  if (arrow_rotation < 0) arrow_rotation += 2 * PI;
 }
 
 static void
 recv_bearing(double b)
 {
   bearing = b;
+  static char str[16];
+  snprintf(str, 15, "%d", (int) (b / PI * 360));
+  text_layer_set_text(debug_layer, str);
   calc_rotation();
   layer_mark_dirty(compass_layer);
 }

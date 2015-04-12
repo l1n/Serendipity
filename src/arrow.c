@@ -7,14 +7,15 @@ GPathInfo ARROW_PATH_INFO = {
 GPath *arrow_ptr = NULL;
 
 double arrow_rotation = 0;
-double actual_rotation = 0;
 Layer *compass_layer;
 
 static void arrow_update_proc(Layer *arrow_layer, GContext* ctx) {
   graphics_context_set_fill_color(ctx, GColorBlack);
   gpath_draw_filled(ctx, arrow_ptr);
   gpath_move_to(arrow_ptr, GPoint(72, 84));
-  gpath_rotate_to(arrow_ptr, (double) TRIG_MAX_ANGLE / 2 / PI * (arrow_rotation - PI / 4));
+
+  gpath_rotate_to(arrow_ptr, (double) TRIG_MAX_ANGLE / 2 / PI * (arrow_rotation));
+  layer_mark_dirty(arrow_layer);
 }
 
 void setup_arrow(GRect bounds) {

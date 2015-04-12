@@ -5,7 +5,9 @@ typedef enum msg_send {
   MSG_KEYPRESS = 0
 } msg_send;
 typedef enum msg_recv {
-  MSG_BEARING = 0
+  MSG_BEARING = 0,
+  MSG_DEBUG = 1,
+  MSG_DESTINATION = 2
 } msg_recv;
 
 void
@@ -25,11 +27,22 @@ communications_set_bearing_callback(void (*cb)(double))
   bearing_callback = cb;
 }
 
+void (*destination_callback)(char const *);
+
+void
+communications_set_destination_callback(void (*cb)(char const *))
+{
+  destination_callback = cb;
+}
+
+extern TextLayer* debug_layer;
+
 static void
 inbox_received_callback(DictionaryIterator *iterator,
                         void *context)
 {
   Tuple *t = dict_read_first(iterator);
+  static char debug[128], destination[128];
   while (t != NULL) {
     switch (t->key) {
     case MSG_BEARING:
@@ -42,6 +55,14 @@ inbox_received_callback(DictionaryIterator *iterator,
         break;
       }
       bearing_callback((double) *((int32_t *) t->value) / 1000000.0);
+      break;
+    case MSG_DEBUG:
+      strncpy(debug, t->value->cstring, 127);
+      text_layer_set_text(debug_layer, debug);
+      break;
+    case MSG_DESTINATION:
+      strncpy(destination, t->value->cstring, 127);
+      if (destination_callback) destination_callback(destination);
       break;
     }
     t = dict_read_next(iterator);

@@ -12,4 +12,7 @@ communications_send_keypress(int key);
 void
 communications_set_bearing_callback(void (*cb)(double));
 
+void
+communications_set_destination_callback(void (*cb)(char const *));
+
 #endif
