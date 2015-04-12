@@ -141,29 +141,31 @@ function umdApiCall(path, callback, error) {
 };
 
 Pebble.addEventListener("ready", function (e) {
-  getBuildings(function(buildings) {
-    getSections(function (sections) {
-      var destination = sections[0].meetings[0];
-      console.log(JSON.stringify(destination));
-      navigator.geolocation.getCurrentPosition(function(pos) {
-        console.log('https://maps.googleapis.com/maps/api/directions/json?origin='+pos.coords.latitude+','+pos.coords.longitude+'&destination='+buildings[destination.building].lat+','+buildings[destination.building].lng+'&mode=walking&key=AIzaSyCxTPa24kl86coKhxb_h7xdyLgq9dCKmuw');
-        var req = new XMLHttpRequest();
-        req.open('GET', 'https://maps.googleapis.com/maps/api/directions/json?origin='+pos.coords.latitude+','+pos.coords.longitude+'&destination='+buildings[destination.building].lat+','+buildings[destination.building].lng+'&mode=walking&key=AIzaSyCxTPa24kl86coKhxb_h7xdyLgq9dCKmuw');
-        req.onload = function (e) {
-          var json = JSON.parse(req.responseText);
-          var steps = json.routes[0].legs[0].steps;
-          var step = 0;
-          (function dostuff() {
-            navigator.geolocation.getCurrentPosition(function() {
-              if (distance(pos.coords.latitude+3.58, pos.coords.longitude, steps[step].end_location.lat, steps[step].end_location.lng) < 0.002 && ++step===steps.length) return Pebble.sendAppMessage({1:"Head to room "+destination.room});
-              var message = floatMsg(bearing(pos.coords.latitude+3.58, pos.coords.longitude, steps[step].end_location.lat, steps[step].end_location.lng));
-              var transactionId = Pebble.sendAppMessage({0:message});
-            }, dostuff, locationOptions);
-          })();
-        };
-        req.send(null);
-      });
-    });
+  navigator.geolocation.getCurrentPosition(function(pos) {
+    var req = new XMLHttpRequest();
+    req.open('GET', 'http://api.yelp.com/v2/search?limit=1&sort=1&ll='+pos.coords.latitude+','+pos.coords.longitude);
+    req.onload = function (res) {
+      console.log(res.responseText);
+      var res = JSON.parse(res.responseText);
+      var req = new XMLHttpRequest();
+      var qstr = 'https://maps.googleapis.com/maps/api/directions/json?origin='+pos.coords.latitude+','+pos.coords.longitude+'&destination='+res.businesses[0].location.address[0]+'&mode=walking&key=AIzaSyCxTPa24kl86coKhxb_h7xdyLgq9dCKmuw';
+      req.open('GET', qstr);
+      console.log(qstr);
+      req.onload = function (e) {
+        var json = JSON.parse(req.responseText);
+        var steps = json.routes[0].legs[0].steps;
+        var step = 0;
+        (function dostuff() {
+          navigator.geolocation.getCurrentPosition(function() {
+            if (distance(pos.coords.latitude+3.58, pos.coords.longitude, steps[step].end_location.lat, steps[step].end_location.lng) < 0.002 && ++step===steps.length) return Pebble.sendAppMessage({1:"Arrived at destination"});
+            var message = floatMsg(bearing(pos.coords.latitude+3.58, pos.coords.longitude, steps[step].end_location.lat, steps[step].end_location.lng));
+            var transactionId = Pebble.sendAppMessage({0:message});
+          }, dostuff, locationOptions);
+        })();
+      };
+      req.send();
+    };
+    req.send();
   });
 });
 Pebble.addEventListener('appmessage', function(e) {
